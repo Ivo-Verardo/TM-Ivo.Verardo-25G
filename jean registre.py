@@ -17,38 +17,54 @@ def calculer_portee(v_b, a):
     # Convertir l'angle en radians
     α = radians(a)
     l = (2*m)/(ρ*A*C_d)
-    portee = 0.5*l*cos(α)*log(1+4*(v_b**2/(g*l))*sin(α))
+    val_int = 0.5*l*cos(α)*log(1+4*(v_b**2/(g*l))*sin(α))
+    portee = val_int+(val_int*((0.6981-α)/(2.5*α)))
     return portee
     
 def maj_trajectoire():
     # Obtenir la vitesse et l'angle des entrées utilisateur
     vitesse = choc(float(entree_v_c.get()),float(entree_m_c.get()))
     angle = float(entree_angle.get())
-    
+    α = radians(angle)
     # Calculer la portée de la balle de golf
     portee = calculer_portee(vitesse, angle)
     # Effacer le canevas
     canevas.delete("all")
     # Dessiner la trajectoire
     points = [(50, 250)]  # Liste pour stocker les coordonnées des ovales
+    x = 50
     y = 250
-    t = 0
-    l = (2*m)/(ρ*A*C_d)
-    h = l*tan(radians(angle))
-    L = 50+l
-    H = 250 - h
-    points.append((L, H))
-    vit_2 = vitesse*2.71828**(-(sqrt(l**2+h**2)/vitesse)/l)
-    while y <= 250:
+    dt = 0.01
+    Vx = vitesse*cos(α)
+    Vy = vitesse*sin(α)
+    while y <= 250 :
         
-        x = L + vit_2 * cos(radians(angle)) * t
-        y = H - vit_2 * sin(radians(angle)) * t + 0.5 * g * t**2
+        Fdx = -C_d*0.5*ρ*A*Vx**2
+        Fdy = -C_d*0.5*ρ*A*Vy**2
         
-        points.append((x, y))  
+        Flx = -C_l*0.5*ρ*A*Vx**2
+        Fly = C_l*0.5*ρ*A*Vy**2
+        
+        Fp = m*-g
+        
+        SFx = Fdx + Flx
+        SFy = Fdy + Fly + Fp
+        
+        ax = SFx/m
+        ay = SFy/m
+        
+        x += Vx*dt
+        y -= Vy*dt
+        
+        Vx += ax*dt
+        Vy += ay*dt
+        
+        
+        points.append((x, y))
         canevas.create_oval(x, y, x, y, fill="white")
-        canevas.create_line(50, 250, 50+portee, 250)
-        t +=0.1
+        
     canevas.create_line(points, fill="blue")  # Dessiner une ligne entre les ovales
+    canevas.create_line(50, 250, 50+portee, 250)
     # Mettre à jour l'étiquette de portée
     etiquette_portee.config(text=f"Portée: {portee:.2f} mètres")
         
@@ -87,4 +103,4 @@ etiquette_portee = Label(fenetre, text="Portée: 0 mètres")
 etiquette_portee.pack()
 
 
-fenetre.mainloop()
+fenetre.mainloop() 
