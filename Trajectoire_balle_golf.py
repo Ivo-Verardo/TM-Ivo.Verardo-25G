@@ -3,13 +3,13 @@ from math import *
 from random import *
 # Constantes pour le calcul de la trajectoire
 g = 9.81  # Accélération due à la gravité (m/s^2)
-m = 0.042  # Masse de la balle de golf (kg)
+m = 0.042  # Masse d'une balle de golf (kg)
 ρ = 1.124  # Densité de l'air à 1000m d'altitude [wind-data.ch] (kg/m^3) 
 A = 0.0014  # Surface en coupe d'une balle de golf (de 4.2cm de diamètre) (m^2)
 
 
 '''
-La fonction "choc" calcule et renvoie la vitesse initiale de la balle après l'impact en utilisant comme valeur la vitesse de club et la masse du club grâce à la formule v_2'=(2m_1 v_1)/(m_1+m_2).
+La fonction "choc" calcule et renvoie la vitesse initiale de la balle après l'impacte en utilisant comme valeur la vitesse de club et la masse du club grâce à la formule v_2'=(2m_1 v_1)/(m_1+m_2).
 '''
 def choc(v_c, m_c) :
 
@@ -17,8 +17,8 @@ def choc(v_c, m_c) :
     return vitesse
 
 '''
-La fonction "dessin_trajectoire" calcule point après point la position de la balle lors de son "carry" et dessine et relie ces points sur le canvas à leurs coordonées respectives.
-Cette fonction note aussi la distance que la balle a parcourue en vol.
+La fonction "dessin_trajectoire" calcule point après point la position de la balle l'ors de son "carry" et dessine et relie ces points sur le canvas à leur coordonées respectives.
+Cette fonction note aussi la distance que la balle à parcourue en vol
 '''
 def dessin_trajectoire(v_b, m_c, v_c, angle) :
     points = [(50, 250)]  # Liste pour stocker les coordonnées des ovales
@@ -28,17 +28,20 @@ def dessin_trajectoire(v_b, m_c, v_c, angle) :
     α = radians(angle)
     Vx = v_b*cos(α)
     Vy = v_b*sin(α)
-    #Calcul des coefficients
-    C_l = angle/(15*m_c*v_c)
-    C_d = 2*C_l-0.03
-    #Calcul de la trajectoire
+    #calcul des coefficients
+    C_l = 0.2
+    C_d = 0.2
+    #calcul de la trajectoire
+    fall = 0
     while y <= 250 :
         #Calcul de la force de traînée
-        Fdx = -C_d*0.5*ρ*A*Vx**2
-        Fdy = -C_d*0.5*ρ*A*Vy**2
+        Fdx = -C_d*0.5*ρ*A*Vx*v_b
+        Fdy = -C_d*0.5*ρ*A*Vy*v_b
         #Calcul de la force de portance
-        Flx = -C_l*0.5*ρ*A*Vx**2
-        Fly = C_l*0.5*ρ*A*Vy**2
+        Flx = -C_l*0.5*ρ*A*Vy*v_b
+        if fall == 1 :
+            Flx*=0
+        Fly = C_l*0.5*ρ*A*Vx*v_b
         #Calcul de la force de pesanteur
         Fp = m*-g
         #Calcul de la somme des forces
@@ -50,6 +53,8 @@ def dessin_trajectoire(v_b, m_c, v_c, angle) :
         #Calcul du nouveau point
         x += Vx*dt
         y -= Vy*dt
+        if y > points[-1][1] :
+            fall = 1
         #Calcul de la nouvelle vitesse
         Vx += ax*dt
         Vy += ay*dt
@@ -63,7 +68,7 @@ def dessin_trajectoire(v_b, m_c, v_c, angle) :
     return
 
 '''
-La fonction "dessin_trajectoire" ajoute une "image" de fond au canevas.
+La fonction "fond" ajoute une "image" de fond au canevas
 '''
 def fond():
     for i in range(5) :
@@ -78,7 +83,7 @@ def fond():
     canevas.create_rectangle(550, 243, 554, 240, outline="red", fill="red")
     
 '''
-La fonction "sys_axe" dessine sur le canevas un système d'axe qui a comme unité 1m = une unité.
+La fonction "sys_axe" dessine sur le canevas un système d'axe qui a comme unité 1m = une unitée
 '''
 def sys_axe():
     canevas.create_line(50, 250, 50, 50)
@@ -104,16 +109,16 @@ def sys_axe():
     
     
 '''
-La fonction "maj_trajectoire" est la fonction qui va récupérer les données entrés par l'utilisateur et qui va "gérer" les autres fonctions dans le bon ordre.
+La fonction "maj_trajectoire" est la fonction qui va récupérer les données entrés par l'utilisateur et qui va "gèrer" les autres fonctions dans le bon ordre.
 '''
 def maj_trajectoire():
     # Obtenir la vitesse, la masse et l'angle des entrées utilisateur
     vit_club = float(entree_v_c.get())
     mas_club = float(entree_m_c.get())/1000
     angle = float(entree_angle.get())
-    # Faire appelle à la fonction choc()
+    #
     vitesse = choc(vit_club, mas_club)
-    # Effacer la courbe du canevas
+    # Effacer le canevas
     canevas.delete("courbe")
     # Dessiner la trajectoire
     dessin_trajectoire(vitesse, mas_club, vit_club, angle)
